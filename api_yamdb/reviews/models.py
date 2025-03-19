@@ -2,11 +2,7 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator, MaxValueValidator
 
-<<<<<<< HEAD
 User = get_user_model()
-=======
-from django.db import models
->>>>>>> features/ModelsViewsEndpoints
 
 
 class Category(models.Model):
@@ -57,7 +53,6 @@ class Title(models.Model):
         related_name='titles',
         verbose_name='Slug категории',
     )
-<<<<<<< HEAD
 
 
 class Review(models.Model):
@@ -94,5 +89,3 @@ class Comment(models.Model):
     pub_date = models.DateTimeField(
         'Дата публикации', auto_now_add=True
     )
-=======
->>>>>>> features/ModelsViewsEndpoints
