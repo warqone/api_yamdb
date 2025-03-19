@@ -13,16 +13,14 @@ User = get_user_model()
 
 
 class SignUpView(APIView):
+    permission_classes = (AllowAny,)
+
     def post(self, request):
         serializer = SignUpSerializer(data=request.data)
         if serializer.is_valid():
             email = serializer.validated_data['email']
-            username = serializer.validated_data['username']
-
-            user = User.objects.get_or_create(
-                email=email,
-                defaults={'username': username})
-            confirmation_code = str(randint(100000, 999999))
+            user, created = serializer.save()
+            confirmation_code = str(randint(10000, 99999))
             user.set_confirmation_code(confirmation_code)
 
             send_mail(
@@ -40,7 +38,8 @@ class SignUpView(APIView):
 
             return Response(
                 {"email": email, "username": user.username},
-                status=status.HTTP_200_OK)
+                status=status.HTTP_200_OK
+            )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -55,5 +54,9 @@ class TokenView(APIView):
 
             return Response(
                 {"token": str(token.access_token)},
-                status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                status=status.HTTP_200_OK
+            )
+        errors = serializer.errors
+        if 'username' in errors and errors['username'][0].code == 'not_found':
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
