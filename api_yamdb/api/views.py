@@ -7,6 +7,7 @@ from .serializers import (
     ReviewSerializer,
     CommentSerializer
 )
+from rest_framework.pagination import LimitOffsetPagination
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
@@ -27,8 +28,10 @@ class TitleViewSet(viewsets.ModelViewSet):
 class ReviewViewSet(viewsets.ModelViewSet):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
+    pagination_class = LimitOffsetPagination
 
 
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
+    pagination_class = LimitOffsetPagination
