@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator, MaxValueValidator
 
+
 User = get_user_model()
 
 
@@ -26,6 +27,18 @@ class Genre(models.Model):
         verbose_name='Слаг',
         max_length=50,
         unique=True,
+    )
+
+
+class Comment(models.Model):
+    text = models.TextField(
+        verbose_name='Комментарий к отзыву',
+    )
+    author = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='comments'
+    )
+    pub_date = models.DateTimeField(
+        'Дата публикации', auto_now_add=True
     )
 
 
@@ -76,16 +89,4 @@ class Review(models.Model):
         on_delete=models.CASCADE,
         related_name='reviews',
         verbose_name='Произведение',
-    )
-
-
-class Comment(models.Model):
-    text = models.TextField(
-        verbose_name='Комментарий к отзыву',
-    )
-    author = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='comments'
-    )
-    pub_date = models.DateTimeField(
-        'Дата публикации', auto_now_add=True
     )
