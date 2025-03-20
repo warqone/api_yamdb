@@ -1,6 +1,9 @@
 from django.db import models
+from django.contrib.auth import get_user_model
+from django.core.validators import MinValueValidator, MaxValueValidator
 
-from django.db import models
+
+User = get_user_model()
 
 
 class Category(models.Model):
@@ -27,6 +30,18 @@ class Genre(models.Model):
     )
 
 
+class Comment(models.Model):
+    text = models.TextField(
+        verbose_name='Комментарий к отзыву',
+    )
+    author = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='comments'
+    )
+    pub_date = models.DateTimeField(
+        'Дата публикации', auto_now_add=True
+    )
+
+
 class Title(models.Model):
     name = models.TextField(
         verbose_name='Название',
@@ -50,4 +65,28 @@ class Title(models.Model):
         on_delete=models.CASCADE,
         related_name='titles',
         verbose_name='Slug категории',
+    )
+
+
+class Review(models.Model):
+    text = models.TextField(
+        verbose_name='Отзыв',
+    )
+    author = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='reviews'
+    )
+    score = models.PositiveSmallIntegerField(
+        validators=[
+            MinValueValidator(1),
+            MaxValueValidator(10)
+        ]
+    )
+    pub_date = models.DateTimeField(
+        'Дата публикации', auto_now_add=True
+    )
+    title = models.ForeignKey(
+        Title,
+        on_delete=models.CASCADE,
+        related_name='reviews',
+        verbose_name='Произведение',
     )
