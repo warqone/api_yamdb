@@ -3,7 +3,7 @@ from django.core.validators import RegexValidator
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
-from reviews.models import Title, Genre, Category
+from reviews.models import Title, Genre, Category, Review, Comment
 from .constants import EMAIL_LENGTH, USERNAME_LENGTH
 
 User = get_user_model()
@@ -103,3 +103,17 @@ class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         fields = ['id', 'name', 'slug']
         model = Category
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        fields = ['id', 'text', 'author', 'score', 'pub_date']
+        model = Review
+
+
+class CommentSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        fields = ['id', 'text', 'author', 'pub_date']
+        model = Comment
