@@ -7,10 +7,13 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import viewsets
+from rest_framework.pagination import LimitOffsetPagination
 
-from reviews.models import Category, Genre, Title
+
+from reviews.models import Category, Genre, Title, Review, Comment
 from .serializers import (CategorySerializer, GenreSerializer, TitleSerializer,
-                          SignUpSerializer, TokenSerializer)
+                          SignUpSerializer, TokenSerializer, ReviewSerializer,
+                          CommentSerializer)
 
 User = get_user_model()
 
@@ -78,3 +81,15 @@ class GenreViewSet(viewsets.ModelViewSet):
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
+
+
+class ReviewViewSet(viewsets.ModelViewSet):
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
+    pagination_class = LimitOffsetPagination
+
+
+class CommentViewSet(viewsets.ModelViewSet):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    pagination_class = LimitOffsetPagination
