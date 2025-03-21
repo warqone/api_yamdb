@@ -3,6 +3,7 @@ from django.core.validators import RegexValidator
 from rest_framework import serializers
 
 from api.constants import EMAIL_LENGTH, USERNAME_LENGTH
+from .models import ROLE_CHOICES
 
 User = get_user_model()
 
@@ -29,7 +30,7 @@ class UserSerializer(serializers.Serializer):
                                       max_length=USERNAME_LENGTH)
     bio = serializers.CharField(required=False)
     role = serializers.ChoiceField(required=False,
-                                   choices=['user', 'admin', 'moderator'],
+                                   choices=ROLE_CHOICES,
                                    default='user')
 
     class Meta:
@@ -51,16 +52,23 @@ class UserSerializer(serializers.Serializer):
                 'Использовать имя "me" в качестве username запрещено.')
         return value
 
+    def validate_role(self, value):
+        if self.context['request'].user.role in ['admin', 'superuser']:
+            return value
+        else:
+            return 'user'
+
     def create(self, validated_data):
         return User.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
         instance.username = validated_data.get('username', instance.username)
         instance.email = validated_data.get('email', instance.email)
-        instance.first_name = validated_data.get(
-            'first_name', instance.first_name)
-        instance.last_name = validated_data.get(
-            'last_name', instance.last_name)
+        instance.first_name = validated_data.get('first_name',
+                                                 instance.first_name)
+        instance.last_name = validated_data.get('last_name',
+                                                instance.last_name)
         instance.bio = validated_data.get('bio', instance.bio)
+        instance.role = validated_data.get('role', instance.role)
         instance.save()
         return instance
