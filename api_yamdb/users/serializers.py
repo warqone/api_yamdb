@@ -46,6 +46,9 @@ class UserSerializer(serializers.Serializer):
         if User.objects.filter(username=value).exists():
             raise serializers.ValidationError(
                 'Пользователь с таким username уже существует.')
+        elif value == 'me':
+            raise serializers.ValidationError(
+                'Использовать имя "me" в качестве username запрещено.')
         return value
 
     def create(self, validated_data):
