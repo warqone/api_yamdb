@@ -84,24 +84,17 @@ class TokenSerializer(serializers.Serializer):
         return TokenObtainPairSerializer.get_token(user)
 
 
-class TitleSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        fields = ['id', 'name', 'year', 'category']
-        model = Title
-
-
 class GenreSerializer(serializers.ModelSerializer):
 
     class Meta:
-        fields = ['id', 'name', 'slug']
+        fields = ['name', 'slug']
         model = Genre
 
 
 class CategorySerializer(serializers.ModelSerializer):
 
     class Meta:
-        fields = ['id', 'name', 'slug']
+        fields = ['name', 'slug']
         model = Category
 
 
@@ -117,3 +110,25 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ['id', 'text', 'author', 'pub_date']
         model = Comment
+
+
+class TitleSerializer(serializers.ModelSerializer):
+    category = serializers.SlugRelatedField(
+        slug_field='slug',
+        queryset=Category.objects.all()
+    )
+    genre = serializers.SlugRelatedField(
+        slug_field='slug',
+        queryset=Genre.objects.all(),
+        many=True
+    )
+
+    class Meta:
+        fields = ['id', 'name', 'year', 'genre', 'category', 'description']
+        model = Title
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['category'] = CategorySerializer(instance.category).data
+        data['genre'] = GenreSerializer(instance.genre.all(), many=True).data
+        return data

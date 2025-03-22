@@ -7,9 +7,9 @@ from .views import (SignUpView, TokenView, CategoryViewSet, GenreViewSet,
 
 router_v1 = DefaultRouter()
 router_v1.register(r'users', UserViewSet, basename='user')
-router_v1.register(r'categories', CategoryViewSet)
-router_v1.register(r'genres', GenreViewSet)
-router_v1.register(r'titles', TitleViewSet)
+router_v1.register(r'categories', CategoryViewSet, basename='categories')
+router_v1.register(r'genres', GenreViewSet, basename='genres')
+router_v1.register(r'titles', TitleViewSet, basename='titles')
 router_v1.register(
     r'titles/(?P<title_id>[0-9]+)/reviews',
     ReviewViewSet,
