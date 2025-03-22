@@ -89,7 +89,7 @@ class Review(models.Model):
     text = models.TextField(
         verbose_name='Отзыв',
     )
-    author = models.ForeignKey(
+    author = models.OneToOneField(
         User, on_delete=models.CASCADE, related_name='reviews'
     )
     score = models.PositiveSmallIntegerField(

@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.core.validators import RegexValidator
+from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
@@ -99,17 +100,42 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
+    author = serializers.SlugRelatedField(
+        slug_field='username',
+        read_only=True
+    )
 
     class Meta:
         fields = ['id', 'text', 'author', 'score', 'pub_date']
         model = Review
 
+    def validate(self, attrs):
+        user = self.context['request'].user
+        method = self.context['request'].method
+        title_id = self.context['view'].kwargs.get('title_id')
+        get_object_or_404(Title, id=title_id)
+        if method == 'POST':
+            if Review.objects.filter(author=user).exists():
+                raise serializers.ValidationError(
+                    "Разрешется оставить только один отзыв к произведению"
+                )
+        return attrs
+
 
 class CommentSerializer(serializers.ModelSerializer):
+    author = serializers.SlugRelatedField(
+        slug_field='username',
+        read_only=True
+    )
 
     class Meta:
         fields = ['id', 'text', 'author', 'pub_date']
         model = Comment
+
+    def validate(self, attrs):
+        review_id = self.context['view'].kwargs.get('review_id')
+        get_object_or_404(Review, id=review_id)
+        return attrs
 
 
 class TitleSerializer(serializers.ModelSerializer):

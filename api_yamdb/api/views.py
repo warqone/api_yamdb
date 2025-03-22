@@ -121,12 +121,34 @@ class TitleViewSet(viewsets.ModelViewSet):
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
-    queryset = Review.objects.all()
     serializer_class = ReviewSerializer
+    permission_classes = [UserPermission,]
     pagination_class = LimitOffsetPagination
+    http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options']
+
+    def perform_create(self, serializer):
+        serializer.save(
+            author=self.request.user,
+            title_id=self.kwargs['title_id']
+        )
+
+    def get_queryset(self):
+        return Review.objects.filter(title=self.kwargs.get('title_id'))
 
 
 class CommentViewSet(viewsets.ModelViewSet):
-    queryset = Comment.objects.all()
+    permission_classes = [UserPermission,]
     serializer_class = CommentSerializer
     pagination_class = LimitOffsetPagination
+    http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options']
+
+    def perform_create(self, serializer):
+        serializer.save(
+            author=self.request.user,
+            review_id=self.kwargs['review_id']
+        )
+
+    def get_queryset(self):
+        return Comment.objects.filter(
+            review=self.kwargs.get('review_id')
+        )
