@@ -84,13 +84,6 @@ class TokenSerializer(serializers.Serializer):
         return TokenObtainPairSerializer.get_token(user)
 
 
-class TitleSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        fields = ['id', 'name', 'year', 'category']
-        model = Title
-
-
 class GenreSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -117,3 +110,12 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ['id', 'text', 'author', 'pub_date']
         model = Comment
+
+
+class TitleSerializer(serializers.ModelSerializer):
+    category = CategorySerializer(many=False, read_only=True)
+    genre = GenreSerializer(many=True, required=True)
+
+    class Meta:
+        fields = ['id', 'name', 'year', 'genre', 'category']
+        model = Title
