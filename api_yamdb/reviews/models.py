@@ -30,21 +30,10 @@ class Genre(models.Model):
     )
 
 
-class Comment(models.Model):
-    text = models.TextField(
-        verbose_name='Комментарий к отзыву',
-    )
-    author = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='comments'
-    )
-    pub_date = models.DateTimeField(
-        'Дата публикации', auto_now_add=True
-    )
-
-
 class Title(models.Model):
-    name = models.TextField(
+    name = models.CharField(
         verbose_name='Название',
+        max_length=256,
     )
     year = models.IntegerField(
         verbose_name='Год выпуска',
@@ -54,15 +43,15 @@ class Title(models.Model):
         null=True,
         blank=True,
     )
-    genre = models.ForeignKey(
+    genre = models.ManyToManyField(
         Genre,
-        on_delete=models.CASCADE,
         related_name='titles',
         verbose_name='Slug жанра',
     )
     category = models.ForeignKey(
         Category,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
+        null=True,
         related_name='titles',
         verbose_name='Slug категории',
     )
@@ -89,4 +78,19 @@ class Review(models.Model):
         on_delete=models.CASCADE,
         related_name='reviews',
         verbose_name='Произведение',
+    )
+
+
+class Comment(models.Model):
+    text = models.TextField(
+        verbose_name='Комментарий к отзыву',
+    )
+    review = models.ForeignKey(
+        Review, on_delete=models.CASCADE, related_name='comments'
+    )
+    author = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='comments'
+    )
+    pub_date = models.DateTimeField(
+        'Дата публикации', auto_now_add=True
     )
