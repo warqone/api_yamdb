@@ -3,6 +3,7 @@ from django.core.validators import RegexValidator
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
+from reviews.models import Title, Genre, Category, Review, Comment
 from .constants import EMAIL_LENGTH, USERNAME_LENGTH
 
 User = get_user_model()
@@ -81,3 +82,53 @@ class TokenSerializer(serializers.Serializer):
 
     def get_token(self, user):
         return TokenObtainPairSerializer.get_token(user)
+
+
+class GenreSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        fields = ['name', 'slug']
+        model = Genre
+
+
+class CategorySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        fields = ['name', 'slug']
+        model = Category
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        fields = ['id', 'text', 'author', 'score', 'pub_date']
+        model = Review
+
+
+class CommentSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        fields = ['id', 'text', 'author', 'pub_date']
+        model = Comment
+
+
+class TitleSerializer(serializers.ModelSerializer):
+    category = serializers.SlugRelatedField(
+        slug_field='slug',
+        queryset=Category.objects.all()
+    )
+    genre = serializers.SlugRelatedField(
+        slug_field='slug',
+        queryset=Genre.objects.all(),
+        many=True
+    )
+
+    class Meta:
+        fields = ['id', 'name', 'year', 'genre', 'category', 'description']
+        model = Title
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['category'] = CategorySerializer(instance.category).data
+        data['genre'] = GenreSerializer(instance.genre.all(), many=True).data
+        return data
