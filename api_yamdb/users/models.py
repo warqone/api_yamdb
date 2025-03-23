@@ -3,16 +3,19 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils import timezone
 
+ROLE_CHOICES = (
+    ('user', 'Пользователь'),
+    ('moderator', 'Модератор'),
+    ('admin', 'Администратор'),
+    ('superuser', 'Суперпользователь')
+)
+
 
 class User(AbstractUser):
     role = models.CharField(
         'Роль',
         max_length=10,
-        choices=(
-            ('user', 'Пользователь'),
-            ('moderator', 'Модератор'),
-            ('admin', 'Администратор'),
-        ),
+        choices=ROLE_CHOICES,
         default='user',
     )
     bio = models.TextField('Биография', blank=True)

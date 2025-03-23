@@ -120,8 +120,11 @@ python3 manage.py runserver
 ## Другие виды запросов
 ##### Все примеры запросов можете посмотреть в [документации API](https://localhost:8000/redoc).
 
+
 ## Иморт из CSV файлов:
-Команда для импорта: python manage.py import_csv \
+Команда для импорта: 
+```
+python manage.py import_csv \
     --categories (путь к файлу)/category.csv \
     --genres (путь к файлу)/genre.csv \
     --titles (путь к файлу)/titles.csv \
@@ -130,6 +133,7 @@ python3 manage.py runserver
     --comments (путь к файлу)/comments.csv \
     --genre_title (путь к файлу)/genre_title.csv
     Например: --categories data/category.csv
+```
 
 ## Авторы: 
 ### Вадим Каримов: [warqone](https://github.com/warqone)

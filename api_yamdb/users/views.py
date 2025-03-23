@@ -49,7 +49,7 @@ class UserViewSet(mixins.ListModelMixin,
         if request.method == 'GET':
             serializer = self.get_serializer(user)
             return Response(serializer.data, status=status.HTTP_200_OK)
-        elif request.method == 'PATCH':
+        elif request.method in ['PATCH', 'PUT']:
             serializer = self.get_serializer(
                 user, data=request.data, partial=True
             )
