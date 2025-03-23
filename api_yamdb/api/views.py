@@ -116,7 +116,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     serializer_class = TitleSerializer
     filter_backends = (rest_framework.DjangoFilterBackend,
                        filters.SearchFilter)
-    filterset_class = TitleFilter  # Используем кастомный фильтр
+    filterset_class = TitleFilter
     search_fields = ('name', 'description')
     permission_classes = [AdminPermission,]
     http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options']
