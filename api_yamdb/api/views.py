@@ -2,16 +2,13 @@ from random import randint
 
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
-from django_filters import rest_framework
 from django.shortcuts import get_object_or_404
-from rest_framework import filters, mixins, status, viewsets
-from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.permissions import AllowAny
-from rest_framework.response import Response
-from rest_framework.views import APIView
+from django_filters import rest_framework
+from rest_framework import (filters, mixins, status, viewsets, pagination,
+                            permissions, response, views)
 
 from reviews.models import Category, Comment, Genre, Review, Title
-from users.permissions import (AdminPermission, UserPermission)
+from users.permissions import AdminPermission, UserPermission
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, ReviewSerializer, SignUpSerializer,
                           TitleSerializer, TokenSerializer)
@@ -29,8 +26,8 @@ class CreateDestroyViewSet(
     pass
 
 
-class SignUpView(APIView):
-    permission_classes = (AllowAny,)
+class SignUpView(views.APIView):
+    permission_classes = (permissions.AllowAny,)
 
     def post(self, request):
         serializer = SignUpSerializer(data=request.data)
@@ -53,15 +50,17 @@ class SignUpView(APIView):
                 fail_silently=True,
             )
 
-            return Response(
+            return response.Response(
                 {"email": email, "username": user.username},
                 status=status.HTTP_200_OK
             )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return response.Response(
+            serializer.errors, status=status.HTTP_400_BAD_REQUEST
+        )
 
 
-class TokenView(APIView):
-    permission_classes = (AllowAny,)
+class TokenView(views.APIView):
+    permission_classes = (permissions.AllowAny,)
 
     def post(self, request):
         serializer = TokenSerializer(data=request.data)
@@ -69,14 +68,14 @@ class TokenView(APIView):
             user = serializer.validated_data['user']
             token = serializer.get_token(user)
 
-            return Response(
+            return response.Response(
                 {"token": str(token.access_token)},
                 status=status.HTTP_200_OK
             )
         errors = serializer.errors
         if 'username' in errors and errors['username'][0].code == 'not_found':
-            return Response(status=status.HTTP_404_NOT_FOUND)
-        return Response(status=status.HTTP_400_BAD_REQUEST)
+            return response.Response(status=status.HTTP_404_NOT_FOUND)
+        return response.Response(status=status.HTTP_400_BAD_REQUEST)
 
 
 class CategoryViewSet(CreateDestroyViewSet):
@@ -122,17 +121,14 @@ class TitleViewSet(viewsets.ModelViewSet):
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
     permission_classes = [UserPermission,]
-    pagination_class = LimitOffsetPagination
+    pagination_class = pagination.LimitOffsetPagination
     http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options']
 
     def perform_create(self, serializer):
         title_id = self.kwargs['title_id']
         title = get_object_or_404(Title, id=self.kwargs['title_id'])
-        title_id = self.kwargs['title_id']
-        title = get_object_or_404(Title, id=self.kwargs['title_id'])
         serializer.save(
             author=self.request.user,
-            title_id=title_id
             title_id=title_id
         )
         get_avg_score(title)
@@ -140,7 +136,6 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def perform_update(self, serializer):
         review = serializer.save()
         title = review.title
-        get_avg_score(title)
         get_avg_score(title)
 
     def perform_update(self, serializer):
@@ -155,7 +150,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 class CommentViewSet(viewsets.ModelViewSet):
     permission_classes = [UserPermission,]
     serializer_class = CommentSerializer
-    pagination_class = LimitOffsetPagination
+    pagination_class = pagination.LimitOffsetPagination
     http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options']
 
     def perform_create(self, serializer):
