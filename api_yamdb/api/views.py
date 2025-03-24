@@ -2,21 +2,18 @@ from random import randint
 
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
-from rest_framework import mixins, status
+from django_filters import rest_framework
+from rest_framework import filters, mixins, status, viewsets
+from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework import viewsets
-from rest_framework.pagination import LimitOffsetPagination
-from rest_framework import filters
-from django_filters import rest_framework
 
-from reviews.models import Category, Genre, Title, Review, Comment
-from .serializers import (CategorySerializer, GenreSerializer, TitleSerializer,
-                          SignUpSerializer, TokenSerializer, ReviewSerializer,
-                          CommentSerializer)
-from users.permissions import (AdminPermission, ModeratorPermission,
-                               UserPermission)
+from reviews.models import Category, Comment, Genre, Review, Title
+from users.permissions import (AdminPermission, UserPermission)
+from .serializers import (CategorySerializer, CommentSerializer,
+                          GenreSerializer, ReviewSerializer, SignUpSerializer,
+                          TitleSerializer, TokenSerializer)
 
 User = get_user_model()
 
@@ -114,7 +111,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     serializer_class = TitleSerializer
     filter_backends = (rest_framework.DjangoFilterBackend,
                        filters.SearchFilter)
-    filterset_class = TitleFilter  # Используем кастомный фильтр
+    filterset_class = TitleFilter
     search_fields = ('name', 'description')
     permission_classes = [AdminPermission,]
     http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options']
