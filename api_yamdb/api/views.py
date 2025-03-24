@@ -60,7 +60,7 @@ class SignUpView(views.APIView):
 
 
 class TokenView(views.APIView):
-    permission_classes = (permissions.AllowAny,)
+    permission_classes = (permissions.AllowAny, )
 
     def post(self, request):
         serializer = TokenSerializer(data=request.data)
@@ -81,18 +81,18 @@ class TokenView(views.APIView):
 class CategoryViewSet(CreateDestroyViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    filter_backends = (filters.SearchFilter,)
+    filter_backends = (filters.SearchFilter, )
     search_fields = ('name',)
-    permission_classes = [AdminPermission,]
+    permission_classes = [AdminPermission, ]
     lookup_field = 'slug'
 
 
 class GenreViewSet(CreateDestroyViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    filter_backends = (filters.SearchFilter,)
+    filter_backends = (filters.SearchFilter, )
     search_fields = ('name',)
-    permission_classes = [AdminPermission,]
+    permission_classes = [AdminPermission, ]
     lookup_field = 'slug'
 
 
@@ -114,13 +114,13 @@ class TitleViewSet(viewsets.ModelViewSet):
                        filters.SearchFilter)
     filterset_class = TitleFilter
     search_fields = ('name', 'description')
-    permission_classes = [AdminPermission,]
+    permission_classes = [AdminPermission, ]
     http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options']
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
-    permission_classes = [UserPermission,]
+    permission_classes = [UserPermission, ]
     pagination_class = pagination.LimitOffsetPagination
     http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options']
 
@@ -148,7 +148,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 
 class CommentViewSet(viewsets.ModelViewSet):
-    permission_classes = [UserPermission,]
+    permission_classes = [UserPermission, ]
     serializer_class = CommentSerializer
     pagination_class = pagination.LimitOffsetPagination
     http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options']
