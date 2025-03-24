@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
-from reviews.models import Title, Genre, Category, Review, Comment
+from reviews.models import Category, Comment, Genre, Review, Title
 from .constants import EMAIL_LENGTH, USERNAME_LENGTH
 
 User = get_user_model()
@@ -150,7 +150,9 @@ class TitleSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        fields = ['id', 'name', 'year', 'genre', 'category', 'description']
+        fields = [
+            'id', 'name', 'year', 'rating', 'genre', 'category', 'description'
+        ]
         model = Title
 
     def to_representation(self, instance):
