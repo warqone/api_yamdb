@@ -58,6 +58,15 @@ class Title(models.Model):
             MaxValueValidator(datetime.now().year),
         ],
     )
+    rating = models.PositiveSmallIntegerField(
+        verbose_name='Описание',
+        null=True,
+        blank=True,
+        validators=[
+            MinValueValidator(1),
+            MaxValueValidator(10)
+        ]
+    )
     description = models.TextField(
         verbose_name='Описание',
         null=True,
@@ -90,9 +99,12 @@ class Review(models.Model):
         verbose_name='Отзыв',
     )
     author = models.OneToOneField(
-        User, on_delete=models.CASCADE, related_name='reviews'
+        User, on_delete=models.CASCADE,
+        related_name='reviews',
+        verbose_name='Автор отзыва'
     )
     score = models.PositiveSmallIntegerField(
+        verbose_name='Оценка',
         validators=[
             MinValueValidator(1),
             MaxValueValidator(10)
@@ -114,10 +126,14 @@ class Comment(models.Model):
         verbose_name='Комментарий к отзыву',
     )
     review = models.ForeignKey(
-        Review, on_delete=models.CASCADE, related_name='comments'
+        Review, on_delete=models.CASCADE,
+        related_name='comments',
+        verbose_name='Отзыв'
     )
     author = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='comments'
+        User, on_delete=models.CASCADE,
+        related_name='comments',
+        verbose_name='Автор комментария'
     )
     pub_date = models.DateTimeField(
         'Дата публикации', auto_now_add=True

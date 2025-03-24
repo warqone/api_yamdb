@@ -3,6 +3,7 @@ from random import randint
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django_filters import rest_framework
+from django.shortcuts import get_object_or_404
 from rest_framework import filters, mixins, status, viewsets
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny
@@ -14,6 +15,7 @@ from users.permissions import (AdminPermission, UserPermission)
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, ReviewSerializer, SignUpSerializer,
                           TitleSerializer, TokenSerializer)
+from .utils import get_avg_score
 
 User = get_user_model()
 
@@ -124,10 +126,18 @@ class ReviewViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options']
 
     def perform_create(self, serializer):
+        title_id = self.kwargs['title_id']
+        title = get_object_or_404(Title, id=self.kwargs['title_id'])
         serializer.save(
             author=self.request.user,
-            title_id=self.kwargs['title_id']
+            title_id=title_id
         )
+        get_avg_score(title)
+
+    def perform_update(self, serializer):
+        review = serializer.save()
+        title = review.title
+        get_avg_score(title)
 
     def get_queryset(self):
         return Review.objects.filter(title=self.kwargs.get('title_id'))

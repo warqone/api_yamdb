@@ -150,7 +150,9 @@ class TitleSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        fields = ['id', 'name', 'year', 'genre', 'category', 'description']
+        fields = [
+            'id', 'name', 'year', 'rating', 'genre', 'category', 'description'
+        ]
         model = Title
 
     def to_representation(self, instance):
