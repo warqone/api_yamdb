@@ -128,10 +128,19 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         title_id = self.kwargs['title_id']
         title = get_object_or_404(Title, id=self.kwargs['title_id'])
+        title_id = self.kwargs['title_id']
+        title = get_object_or_404(Title, id=self.kwargs['title_id'])
         serializer.save(
             author=self.request.user,
             title_id=title_id
+            title_id=title_id
         )
+        get_avg_score(title)
+
+    def perform_update(self, serializer):
+        review = serializer.save()
+        title = review.title
+        get_avg_score(title)
         get_avg_score(title)
 
     def perform_update(self, serializer):
