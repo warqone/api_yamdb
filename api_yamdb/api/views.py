@@ -3,16 +3,15 @@ from random import randint
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
+from django.conf import settings
 from django_filters import rest_framework
 from rest_framework import (filters, mixins, status, viewsets, pagination,
                             permissions, response, views)
 
 from reviews.models import Category, Comment, Genre, Review, Title
 from users.permissions import AdminPermission, UserPermission
-from .serializers import (CategorySerializer, CommentSerializer,
-                          GenreSerializer, ReviewSerializer, SignUpSerializer,
-                          TitleSerializer, TokenSerializer)
-from .utils import get_avg_score
+from api import serializers
+from api.utils import get_avg_score
 
 User = get_user_model()
 
@@ -30,10 +29,10 @@ class SignUpView(views.APIView):
     permission_classes = (permissions.AllowAny,)
 
     def post(self, request):
-        serializer = SignUpSerializer(data=request.data)
-        if serializer.is_valid():
+        serializer = serializers.SignUpSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
             email = serializer.validated_data['email']
-            user, created = serializer.save()
+            user, _ = serializer.save()
             confirmation_code = str(randint(10000, 99999))
             user.set_confirmation_code(confirmation_code)
 
@@ -45,15 +44,13 @@ class SignUpView(views.APIView):
                     'проигнорируйте его!\n'
                     f'Ваш код подтверждения: {confirmation_code}'
                 ),
-                from_email='no_reply@yambd.com',
+                from_email=settings.EMAIL_BASE,
                 recipient_list=[email],
                 fail_silently=True,
             )
 
-            return response.Response(
-                {"email": email, "username": user.username},
-                status=status.HTTP_200_OK
-            )
+            return response.Response(serializer.validated_data,
+                                     status=status.HTTP_200_OK)
         return response.Response(
             serializer.errors, status=status.HTTP_400_BAD_REQUEST
         )
@@ -63,7 +60,7 @@ class TokenView(views.APIView):
     permission_classes = (permissions.AllowAny,)
 
     def post(self, request):
-        serializer = TokenSerializer(data=request.data)
+        serializer = serializers.TokenSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.validated_data['user']
             token = serializer.get_token(user)
@@ -80,7 +77,7 @@ class TokenView(views.APIView):
 
 class CategoryViewSet(CreateDestroyViewSet):
     queryset = Category.objects.all()
-    serializer_class = CategorySerializer
+    serializer_class = serializers.CategorySerializer
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
     permission_classes = [AdminPermission,]
@@ -89,7 +86,7 @@ class CategoryViewSet(CreateDestroyViewSet):
 
 class GenreViewSet(CreateDestroyViewSet):
     queryset = Genre.objects.all()
-    serializer_class = GenreSerializer
+    serializer_class = serializers.GenreSerializer
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
     permission_classes = [AdminPermission,]
@@ -109,7 +106,7 @@ class TitleFilter(rest_framework.FilterSet):
 
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
-    serializer_class = TitleSerializer
+    serializer_class = serializers.TitleSerializer
     filter_backends = (rest_framework.DjangoFilterBackend,
                        filters.SearchFilter)
     filterset_class = TitleFilter
@@ -119,7 +116,7 @@ class TitleViewSet(viewsets.ModelViewSet):
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
-    serializer_class = ReviewSerializer
+    serializer_class = serializers.ReviewSerializer
     permission_classes = [UserPermission,]
     pagination_class = pagination.LimitOffsetPagination
     http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options']
@@ -149,7 +146,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     permission_classes = [UserPermission,]
-    serializer_class = CommentSerializer
+    serializer_class = serializers.CommentSerializer
     pagination_class = pagination.LimitOffsetPagination
     http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options']
 

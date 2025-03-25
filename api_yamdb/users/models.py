@@ -3,25 +3,25 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils import timezone
 
-ROLE_CHOICES = (
-    ('user', 'Пользователь'),
-    ('moderator', 'Модератор'),
-    ('admin', 'Администратор'),
-    ('superuser', 'Суперпользователь')
-)
+from api import constants
 
 
 class User(AbstractUser):
+    username = models.CharField(
+        'Имя пользователя',
+        max_length=constants.USERNAME_LENGTH,
+        unique=True,
+    )
     role = models.CharField(
         'Роль',
-        max_length=10,
-        choices=ROLE_CHOICES,
-        default='user',
+        max_length=constants.ROLE_NAME_LENGTH,
+        choices=constants.ROLE_CHOICES,
+        default=constants.USER,
     )
     bio = models.TextField('Биография', blank=True)
     confirmation_code_hash = models.CharField(
         'Код подтверждения',
-        max_length=128,
+        max_length=constants.CONFIRMATION_CODE_LENGTH,
         blank=True,
         null=True)
     confirmation_code_created_at = models.TextField(
