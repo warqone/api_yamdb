@@ -1,17 +1,13 @@
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 
-from .models import User
+from users.models import User
 
 
 @admin.register(User)
-class UserAdmin(admin.ModelAdmin):
+class UserAdmin(BaseUserAdmin):
     list_display = ('username', 'email', 'role')
     list_filter = ('role',)
     search_fields = ('username', 'email')
     list_editable = ('role',)
     empty_value_display = '-пусто-'
-
-    class Meta:
-        model = User
-        verbose_name = 'Пользователь'
-        verbose_name_plural = 'Пользователи'

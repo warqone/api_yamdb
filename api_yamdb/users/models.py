@@ -3,31 +3,41 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils import timezone
 
-ROLE_CHOICES = (
-    ('user', 'Пользователь'),
-    ('moderator', 'Модератор'),
-    ('admin', 'Администратор'),
-    ('superuser', 'Суперпользователь')
-)
+from api import constants
+from api.validators import validate_username
 
 
 class User(AbstractUser):
+    username = models.CharField(
+        'Имя пользователя',
+        max_length=constants.USERNAME_LENGTH,
+        unique=True,
+        validators=[
+            validate_username
+        ]
+    )
     role = models.CharField(
         'Роль',
-        max_length=10,
-        choices=ROLE_CHOICES,
-        default='user',
+        max_length=constants.ROLE_NAME_LENGTH,
+        choices=constants.ROLE_CHOICES,
+        default=constants.USER,
     )
     bio = models.TextField('Биография', blank=True)
     confirmation_code_hash = models.CharField(
         'Код подтверждения',
-        max_length=128,
+        max_length=constants.CONFIRMATION_CODE_LENGTH,
         blank=True,
         null=True)
     confirmation_code_created_at = models.TextField(
         'Время создания кода подтверждения',
         blank=True,
         null=True)
+
+    def __str__(self):
+        return self.username[:constants.USERNAME_LENGTH]
+
+    def is_admin(self):
+        return self.role == constants.ADMIN or self.is_superuser
 
     def set_confirmation_code(self, code):
         """Устанавливает хешированный код подтверждения и время создания."""
