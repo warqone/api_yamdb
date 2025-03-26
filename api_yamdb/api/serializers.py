@@ -1,11 +1,10 @@
 from django.contrib.auth import get_user_model
 from django.core.validators import RegexValidator
-from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
-from reviews.models import Category, Comment, Genre, Review, Title
 from api import constants
+from reviews.models import Category, Comment, Genre, Review, Title
 
 User = get_user_model()
 
@@ -40,7 +39,7 @@ class SignUpSerializer(serializers.Serializer):
                 user = User.objects.get(email=email)
                 if user.username != username:
                     raise serializers.ValidationError(
-                        {'email': 'Пользователь с таким email уже существует.'}
+                        'Пользователь с таким email уже существует.'
                     )
             except User.DoesNotExist:
                 pass
@@ -49,8 +48,7 @@ class SignUpSerializer(serializers.Serializer):
                 user = User.objects.get(username=username)
                 if user.email != email:
                     raise serializers.ValidationError(
-                        {'username':
-                         f'Пользователь {username} уже существует.'}
+                        f'Пользователь {username} уже существует.'
                     )
             except User.DoesNotExist:
                 pass
@@ -119,14 +117,12 @@ class ReviewSerializer(serializers.ModelSerializer):
         model = Review
 
     def validate(self, attrs):
-        user = self.context['request'].user
-        method = self.context['request'].method
-        title_id = self.context['view'].kwargs.get('title_id')
-        get_object_or_404(Title, id=title_id)
-        if method == 'POST':
-            if Review.objects.filter(author=user).exists():
+        if self.context['request'].method == 'POST':
+            user = self.context['request'].user
+            title_id = self.context['view'].kwargs.get('title_id')
+            if Review.objects.filter(author=user, title_id=title_id).exists():
                 raise serializers.ValidationError(
-                    "Разрешется оставить только один отзыв к произведению"
+                    "Разрешено оставить только один отзыв к произведению"
                 )
         return attrs
 
@@ -141,11 +137,6 @@ class CommentSerializer(serializers.ModelSerializer):
         fields = ['id', 'text', 'author', 'pub_date']
         model = Comment
 
-    def validate(self, attrs):
-        review_id = self.context['view'].kwargs.get('review_id')
-        get_object_or_404(Review, id=review_id)
-        return attrs
-
 
 class TitleSerializer(serializers.ModelSerializer):
     category = serializers.SlugRelatedField(
@@ -157,6 +148,7 @@ class TitleSerializer(serializers.ModelSerializer):
         queryset=Genre.objects.all(),
         many=True
     )
+    rating = serializers.SerializerMethodField()
 
     class Meta:
         fields = [
@@ -169,3 +161,50 @@ class TitleSerializer(serializers.ModelSerializer):
         data['category'] = CategorySerializer(instance.category).data
         data['genre'] = GenreSerializer(instance.genre.all(), many=True).data
         return data
+
+    def get_rating(self, obj):
+        if hasattr(obj, 'avg_rating'):
+            return obj.avg_rating
+        return None
+
+
+class UserSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(
+        required=True,
+        max_length=constants.USERNAME_LENGTH,
+        validators=[
+            RegexValidator(
+                regex=constants.USERNAME_VALIDATOR,
+                message=(
+                    'Имя пользователя может содержать только буквы, цифры и '
+                    'символы @/./+/-/_'),
+                code='invalid_username'
+            )
+        ]
+    )
+    email = serializers.EmailField(required=True,
+                                   max_length=constants.EMAIL_LENGTH)
+
+    class Meta:
+        model = User
+        fields = 'username', 'email', 'first_name', 'last_name', 'bio', 'role'
+
+    def validate_email(self, value):
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError(
+                'Пользователь с таким email уже существует.')
+        return value
+
+    def validate_username(self, value):
+        if User.objects.filter(username=value).exists():
+            raise serializers.ValidationError(
+                'Пользователь с таким username уже существует.')
+        elif value in constants.BANNED_USERNAMES:
+            raise serializers.ValidationError(
+                f'Использовать имя {value} в качестве username запрещено.')
+        return value
+
+    def validate_role(self, value):
+        if self.context['request'].user.is_admin():
+            return value
+        return constants.USER

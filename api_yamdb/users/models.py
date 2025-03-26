@@ -4,6 +4,7 @@ from django.db import models
 from django.utils import timezone
 
 from api import constants
+from api.validators import validate_username
 
 
 class User(AbstractUser):
@@ -11,6 +12,9 @@ class User(AbstractUser):
         'Имя пользователя',
         max_length=constants.USERNAME_LENGTH,
         unique=True,
+        validators=[
+            validate_username
+        ]
     )
     role = models.CharField(
         'Роль',
@@ -28,6 +32,12 @@ class User(AbstractUser):
         'Время создания кода подтверждения',
         blank=True,
         null=True)
+
+    def __str__(self):
+        return self.username[:constants.USERNAME_LENGTH]
+
+    def is_admin(self):
+        return self.role == constants.ADMIN or self.is_superuser
 
     def set_confirmation_code(self, code):
         """Устанавливает хешированный код подтверждения и время создания."""

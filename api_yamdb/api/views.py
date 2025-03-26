@@ -1,17 +1,18 @@
 from random import randint
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
+from django.db.models import Avg
 from django.shortcuts import get_object_or_404
-from django.conf import settings
 from django_filters import rest_framework
-from rest_framework import (filters, mixins, status, viewsets, pagination,
-                            permissions, response, views)
+from rest_framework import (filters, mixins, pagination, permissions, response,
+                            status, views, viewsets)
+from rest_framework.decorators import action
 
-from reviews.models import Category, Comment, Genre, Review, Title
-from users.permissions import AdminPermission, UserPermission
 from api import serializers
-from api.utils import get_avg_score
+from api.permissions import AdminPermission, IsAdminOnly, UserPermission
+from reviews.models import Category, Comment, Genre, Review, Title
 
 User = get_user_model()
 
@@ -114,49 +115,73 @@ class TitleViewSet(viewsets.ModelViewSet):
     permission_classes = [AdminPermission,]
     http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options']
 
+    def get_queryset(self):
+        return super().get_queryset().annotate(
+            avg_rating=Avg('reviews__score')
+        )
+
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.ReviewSerializer
-    permission_classes = [UserPermission,]
+    permission_classes = [UserPermission]
     pagination_class = pagination.LimitOffsetPagination
     http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options']
 
+    def get_title(self):
+        return get_object_or_404(Title, id=self.kwargs['title_id'])
+
     def perform_create(self, serializer):
-        title_id = self.kwargs['title_id']
-        title = get_object_or_404(Title, id=self.kwargs['title_id'])
-        serializer.save(
-            author=self.request.user,
-            title_id=title_id
-        )
-        get_avg_score(title)
-
-    def perform_update(self, serializer):
-        review = serializer.save()
-        title = review.title
-        get_avg_score(title)
-
-    def perform_update(self, serializer):
-        review = serializer.save()
-        title = review.title
-        get_avg_score(title)
+        title = self.get_title()
+        serializer.save(author=self.request.user, title=title)
 
     def get_queryset(self):
-        return Review.objects.filter(title=self.kwargs.get('title_id'))
+        title = self.get_title()
+        return Review.objects.filter(title=title)
 
 
 class CommentViewSet(viewsets.ModelViewSet):
-    permission_classes = [UserPermission,]
+    permission_classes = [UserPermission]
     serializer_class = serializers.CommentSerializer
     pagination_class = pagination.LimitOffsetPagination
     http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options']
 
-    def perform_create(self, serializer):
-        serializer.save(
-            author=self.request.user,
-            review_id=self.kwargs['review_id']
+    def get_review(self):
+        return get_object_or_404(
+            Review,
+            id=self.kwargs['review_id'],
+            title_id=self.kwargs['title_id']
         )
 
+    def perform_create(self, serializer):
+        review = self.get_review()
+        serializer.save(author=self.request.user, review=review)
+
     def get_queryset(self):
-        return Comment.objects.filter(
-            review=self.kwargs.get('review_id')
+        review = self.get_review()
+        return Comment.objects.filter(review=review)
+
+
+class UserViewSet(viewsets.ModelViewSet):
+    permission_classes = (permissions.IsAuthenticated, IsAdminOnly,)
+    pagination_class = pagination.LimitOffsetPagination
+    queryset = User.objects.all()
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('^username',)
+    serializer_class = serializers.UserSerializer
+    lookup_field = 'username'
+    http_method_names = ['get', 'post', 'patch', 'delete']
+
+    @action(detail=False, methods=['get', 'patch'], url_path='me',
+            permission_classes=[permissions.IsAuthenticated])
+    def me(self, request):
+        user = request.user
+        if request.method == 'GET':
+            serializer = self.get_serializer(user)
+            return response.Response(
+                serializer.data, status=status.HTTP_200_OK)
+        serializer = self.get_serializer(
+            user, data=request.data, partial=True
         )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return response.Response(serializer.data, status=status.HTTP_200_OK)

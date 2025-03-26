@@ -3,8 +3,7 @@ from rest_framework import permissions
 
 class IsAdminOnly(permissions.BasePermission):
     def has_permission(self, request, view):
-        if request.user.role == 'admin' or request.user.is_superuser is True:
-            return True
+        return request.user.is_admin()
 
 
 class AdminPermission(permissions.BasePermission):
