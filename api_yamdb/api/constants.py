@@ -13,3 +13,4 @@ ROLE_CHOICES = (
     (MODERATOR, 'Модератор'),
     (ADMIN, 'Администратор'),
 )
+CHARFIELD_MAX_LENGHT = 256

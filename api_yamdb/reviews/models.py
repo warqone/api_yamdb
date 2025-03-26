@@ -3,58 +3,54 @@ from datetime import datetime
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
+from api.constants import CHARFIELD_MAX_LENGHT
 from users.models import User
 
 
-class Category(models.Model):
-    name = models.CharField(
-        verbose_name='Категория',
-        max_length=256,
-    )
+class BaseModel(models.Model):
     slug = models.SlugField(
         verbose_name='Слаг',
-        max_length=50,
         unique=True,
     )
 
     class Meta:
         ordering = ('name', )
-        verbose_name = 'Категория'
-        verbose_name_plural = 'Категории'
+        abstract = True
 
     def __str__(self) -> str:
         return self.name
+
+
+class Category(BaseModel):
+    name = models.CharField(
+        verbose_name='Категория',
+        max_length=CHARFIELD_MAX_LENGHT,
+    )
+
+    class Meta:
+        verbose_name = 'Категория'
+        verbose_name_plural = 'Категории'
 
 
 class Genre(models.Model):
     name = models.TextField(
         verbose_name='Жанр',
-        max_length=256,
-    )
-    slug = models.SlugField(
-        verbose_name='Слаг',
-        max_length=50,
-        unique=True,
+        max_length=CHARFIELD_MAX_LENGHT,
     )
 
     class Meta:
-        ordering = ('name', )
         verbose_name = 'Жанр',
         verbose_name_plural = 'Жанры'
-
-    def __str__(self) -> str:
-        return self.name
 
 
 class Title(models.Model):
     name = models.CharField(
         verbose_name='Название',
-        max_length=256,
+        max_length=CHARFIELD_MAX_LENGHT,
     )
-    year = models.IntegerField(
+    year = models.SmallIntegerField(
         verbose_name='Год выпуска',
         validators=[
-            MinValueValidator(1800),
             MaxValueValidator(datetime.now().year),
         ],
     )

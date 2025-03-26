@@ -11,6 +11,7 @@ from rest_framework import (filters, mixins, pagination, permissions, response,
 from rest_framework.decorators import action
 
 from api import serializers
+from api.filters import TitleFilter
 from api.permissions import AdminPermission, IsAdminOnly, UserPermission
 from reviews.models import Category, Comment, Genre, Review, Title
 
@@ -23,7 +24,10 @@ class CreateDestroyViewSet(
     mixins.DestroyModelMixin,
     viewsets.GenericViewSet
 ):
-    pass
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
+    permission_classes = [AdminPermission]
+    lookup_field = 'slug'
 
 
 class SignUpView(views.APIView):
@@ -79,30 +83,11 @@ class TokenView(views.APIView):
 class CategoryViewSet(CreateDestroyViewSet):
     queryset = Category.objects.all()
     serializer_class = serializers.CategorySerializer
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
-    permission_classes = [AdminPermission,]
-    lookup_field = 'slug'
 
 
 class GenreViewSet(CreateDestroyViewSet):
     queryset = Genre.objects.all()
     serializer_class = serializers.GenreSerializer
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
-    permission_classes = [AdminPermission,]
-    lookup_field = 'slug'
-
-
-class TitleFilter(rest_framework.FilterSet):
-    genre = rest_framework.CharFilter(field_name='genre__slug',
-                                      lookup_expr='exact')
-    category = rest_framework.CharFilter(field_name='category__slug',
-                                         lookup_expr='exact')
-
-    class Meta:
-        model = Title
-        fields = ['name', 'year', 'genre', 'category']
 
 
 class TitleViewSet(viewsets.ModelViewSet):
