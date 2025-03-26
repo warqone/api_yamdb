@@ -32,7 +32,7 @@ class SignUpSerializer(serializers.Serializer):
         email = data.get('email')
         if username in constants.BANNED_USERNAMES:
             raise serializers.ValidationError(
-                f'Использовать имя {username} в качестве username запрещено.'
+                f'Использовать имя "{username}" в качестве username запрещено.'
             )
         if email:
             try:
@@ -48,7 +48,7 @@ class SignUpSerializer(serializers.Serializer):
                 user = User.objects.get(username=username)
                 if user.email != email:
                     raise serializers.ValidationError(
-                        f'Пользователь {username} уже существует.'
+                        f'Пользователь "{username}" уже существует.'
                     )
             except User.DoesNotExist:
                 pass

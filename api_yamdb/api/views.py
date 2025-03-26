@@ -12,7 +12,7 @@ from rest_framework.decorators import action
 
 from api import serializers
 from api.filters import TitleFilter
-from api.permissions import AdminPermission, IsAdminOnly, UserPermission
+from api.permissions import AdminPermission, IsAdminOnly, IsAuthorOrReadOnly
 from reviews.models import Category, Comment, Genre, Review, Title
 
 User = get_user_model()
@@ -54,8 +54,9 @@ class SignUpView(views.APIView):
                 fail_silently=True,
             )
 
-            return response.Response(serializer.validated_data,
-                                     status=status.HTTP_200_OK)
+            return response.Response(
+                serializer.validated_data, status=status.HTTP_200_OK
+            )
         return response.Response(
             serializer.errors, status=status.HTTP_400_BAD_REQUEST
         )
@@ -81,7 +82,7 @@ class TokenView(views.APIView):
 
 
 class CategoryViewSet(CreateDestroyViewSet):
-    queryset = Category.objects.all()
+    queryset = Category.objects.all().order_by('name')
     serializer_class = serializers.CategorySerializer
 
 
@@ -91,7 +92,7 @@ class GenreViewSet(CreateDestroyViewSet):
 
 
 class TitleViewSet(viewsets.ModelViewSet):
-    queryset = Title.objects.all()
+    queryset = Title.objects.all().order_by('name')
     serializer_class = serializers.TitleSerializer
     filter_backends = (rest_framework.DjangoFilterBackend,
                        filters.SearchFilter)
@@ -108,7 +109,8 @@ class TitleViewSet(viewsets.ModelViewSet):
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.ReviewSerializer
-    permission_classes = [UserPermission]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly,
+                          IsAuthorOrReadOnly]
     pagination_class = pagination.LimitOffsetPagination
     http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options']
 
@@ -125,7 +127,9 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 
 class CommentViewSet(viewsets.ModelViewSet):
-    permission_classes = [UserPermission]
+    permission_classes = [
+        permissions.IsAuthenticatedOrReadOnly,
+        IsAuthorOrReadOnly]
     serializer_class = serializers.CommentSerializer
     pagination_class = pagination.LimitOffsetPagination
     http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options']
