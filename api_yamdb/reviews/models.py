@@ -32,7 +32,7 @@ class Category(BaseModel):
         verbose_name_plural = 'Категории'
 
 
-class Genre(models.Model):
+class Genre(BaseModel):
     name = models.TextField(
         verbose_name='Жанр',
         max_length=CHARFIELD_MAX_LENGHT,
