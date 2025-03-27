@@ -116,7 +116,7 @@ class Command(BaseCommand):
                 self.handle_category, ['id', 'name', 'slug']),
             'genres': (self.handle_genre, ['id', 'name', 'slug']),
             'titles': (
-                self.handle_title, ['id', 'name', 'year', 
+                self.handle_title, ['id', 'name', 'year',
                                     'category', 'genre', 'description']),
             'users': (
                 self.handle_user, ['id', 'username', 'email',
