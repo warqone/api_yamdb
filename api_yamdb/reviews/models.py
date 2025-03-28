@@ -3,7 +3,8 @@ from datetime import datetime
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-from api.constants import CHARFIELD_MAX_LENGHT, MIN_RATING, MAX_RATING
+from api.constants import (CHARFIELD_MAX_LENGHT, MIN_RATING, MAX_RATING,
+                           LIMIT_STRING)
 from users.models import User
 
 
@@ -37,11 +38,11 @@ class ReviewComment(models.Model):
     )
 
     class Meta:
-        ordering = ('pub_date', )
+        ordering = ('pub_date',)
         abstract = True
 
     def __str__(self) -> str:
-        return self.text[:15]
+        return self.text[:LIMIT_STRING]
 
 
 class Category(BaseModel):
@@ -129,8 +130,14 @@ class Review(ReviewComment):
         related_name='reviews',
         verbose_name='Произведение',
     )
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='review_author',
+    )
 
     class Meta:
+        default_related_name = 'reviews.review'
         constraints = [
             models.UniqueConstraint(
                 fields=['title', 'author'],
@@ -146,11 +153,12 @@ class Comment(ReviewComment):
         verbose_name='Отзыв'
     )
     author = models.ForeignKey(
-        User, on_delete=models.CASCADE,
-        related_name='comments',
-        verbose_name='Автор комментария'
+        User,
+        on_delete=models.CASCADE,
+        related_name='comment_author',
     )
 
     class Meta:
+        default_related_name = 'reviews.comment'
         verbose_name = 'Комментарий'
         verbose_name_plural = 'Комментарии'

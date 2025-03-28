@@ -13,7 +13,7 @@ from rest_framework.decorators import action
 from api import serializers
 from api.filters import TitleFilter
 from api.permissions import AdminPermission, IsAdminOnly, IsAuthorOrReadOnly
-from reviews.models import Category, Comment, Genre, Review, Title
+from reviews.models import Category, Genre, Review, Title
 
 User = get_user_model()
 
@@ -35,30 +35,27 @@ class SignUpView(views.APIView):
 
     def post(self, request):
         serializer = serializers.SignUpSerializer(data=request.data)
-        if serializer.is_valid(raise_exception=True):
-            email = serializer.validated_data['email']
-            user, _ = serializer.save()
-            confirmation_code = str(randint(10000, 99999))
-            user.set_confirmation_code(confirmation_code)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data['email']
+        user = serializer.save()
+        confirmation_code = str(randint(10000, 99999))
+        user.set_confirmation_code(confirmation_code)
 
-            send_mail(
-                subject='Код подтверждения API Yamdb',
-                message=(
-                    f'Здравствуйте, {user.username}!\n'
-                    'Если вы получили это письмо по ошибке, пожалуйста, '
-                    'проигнорируйте его!\n'
-                    f'Ваш код подтверждения: {confirmation_code}'
-                ),
-                from_email=settings.EMAIL_BASE,
-                recipient_list=[email],
-                fail_silently=True,
-            )
+        send_mail(
+            subject='Код подтверждения API Yamdb',
+            message=(
+                f'Здравствуйте, {user.username}!\n'
+                'Если вы получили это письмо по ошибке, пожалуйста, '
+                'проигнорируйте его!\n'
+                f'Ваш код подтверждения: {confirmation_code}'
+            ),
+            from_email=settings.EMAIL_BASE,
+            recipient_list=[email],
+            fail_silently=True,
+        )
 
-            return response.Response(
-                serializer.validated_data, status=status.HTTP_200_OK
-            )
         return response.Response(
-            serializer.errors, status=status.HTTP_400_BAD_REQUEST
+            serializer.validated_data, status=status.HTTP_200_OK
         )
 
 
@@ -67,18 +64,14 @@ class TokenView(views.APIView):
 
     def post(self, request):
         serializer = serializers.TokenSerializer(data=request.data)
-        if serializer.is_valid():
-            user = serializer.validated_data['user']
-            token = serializer.get_token(user)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+        token = serializer.get_token(user)
 
-            return response.Response(
-                {"token": str(token.access_token)},
-                status=status.HTTP_200_OK
-            )
-        errors = serializer.errors
-        if 'username' in errors and errors['username'][0].code == 'not_found':
-            return response.Response(status=status.HTTP_404_NOT_FOUND)
-        return response.Response(status=status.HTTP_400_BAD_REQUEST)
+        return response.Response(
+            {"token": str(token.access_token)},
+            status=status.HTTP_200_OK
+        )
 
 
 class CategoryViewSet(CreateDestroyViewSet):
@@ -123,7 +116,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         title = self.get_title()
-        return Review.objects.filter(title=title)
+        return title.reviews.all()
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -147,7 +140,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         review = self.get_review()
-        return Comment.objects.filter(review=review)
+        return review.comments.all()
 
 
 class UserViewSet(viewsets.ModelViewSet):

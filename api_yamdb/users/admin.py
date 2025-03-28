@@ -11,3 +11,8 @@ class UserAdmin(BaseUserAdmin):
     search_fields = ('username', 'email')
     list_editable = ('role',)
     empty_value_display = '-пусто-'
+    fieldsets = (
+        (None, {'fields': ('username', 'email', 'password')}),
+        ('Персональная информация', {'fields': (
+            'first_name', 'last_name', 'bio', 'role')}),
+    )

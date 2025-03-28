@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from django.core.validators import RegexValidator
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework.exceptions import NotFound
 
 from api import constants
 from reviews.models import Category, Comment, Genre, Review, Title
@@ -60,7 +61,7 @@ class SignUpSerializer(serializers.Serializer):
             email=validated_data['email'],
             username=validated_data['username']
         )
-        return user, _
+        return user
 
 
 class TokenSerializer(serializers.Serializer):
@@ -76,10 +77,9 @@ class TokenSerializer(serializers.Serializer):
         try:
             user = User.objects.get(username=username)
         except User.DoesNotExist:
-            raise serializers.ValidationError(
-                {'username': 'Пользователь с таким username не найден.'},
-                code='not_found'
-            )
+            raise NotFound(
+                detail={'username':
+                        'Пользователь с таким username не найден.'})
 
         if not user.is_confirmation_code_valid(confirmation_code):
             raise serializers.ValidationError(
@@ -199,12 +199,12 @@ class UserSerializer(serializers.ModelSerializer):
         if User.objects.filter(username=value).exists():
             raise serializers.ValidationError(
                 'Пользователь с таким username уже существует.')
-        elif value in constants.BANNED_USERNAMES:
+        if value in constants.BANNED_USERNAMES:
             raise serializers.ValidationError(
                 f'Использовать имя {value} в качестве username запрещено.')
         return value
 
     def validate_role(self, value):
-        if self.context['request'].user.is_admin():
+        if self.context['request'].user.is_admin:
             return value
         return constants.USER
