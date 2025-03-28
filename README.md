@@ -71,6 +71,21 @@ python3 manage.py migrate
 ```
 python3 manage.py runserver
 ```
+
+## Иморт из CSV файлов:
+Команда для импорта: 
+```
+python manage.py import_csv \
+    --categories (путь к файлу)/category.csv \
+    --genres (путь к файлу)/genre.csv \
+    --titles (путь к файлу)/titles.csv \
+    --users (путь к файлу)/users.csv \
+    --reviews (путь к файлу)/review.csv \
+    --comments (путь к файлу)/comments.csv \
+    --genre_title (путь к файлу)/genre_title.csv
+    Например: --categories data/category.csv
+```
+
 ## Алгоритм регистрации пользователей
 
 1.  Пользователь отправляет POST-запрос на добавление нового пользователя с параметрами  `email`  и  `username`  на эндпоинт  `/api/v1/auth/signup/`.
