@@ -1,9 +1,10 @@
-from api import constants
 from django.contrib.auth import get_user_model
 from django.core.validators import RegexValidator
 from rest_framework import serializers
 from rest_framework.exceptions import NotFound
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+
+from api import constants
 from reviews.models import Category, Comment, Genre, Review, Title
 
 User = get_user_model()
@@ -138,28 +139,14 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class TitleSerializer(serializers.ModelSerializer):
-    category = serializers.SlugRelatedField(
-        slug_field='slug',
-        queryset=Category.objects.all()
-    )
-    genre = serializers.SlugRelatedField(
-        slug_field='slug',
-        queryset=Genre.objects.all(),
-        many=True
-    )
-    rating = serializers.SerializerMethodField()
+    category = serializers.StringRelatedField()
+    genre = serializers.StringRelatedField(many=True)
+    rating = serializers.IntegerField(read_only=True)
 
     class Meta:
-        fields = [
-            'id', 'name', 'year', 'rating', 'genre', 'category', 'description'
-        ]
         model = Title
-
-    def to_representation(self, instance):
-        data = super().to_representation(instance)
-        data['category'] = CategorySerializer(instance.category).data
-        data['genre'] = GenreSerializer(instance.genre.all(), many=True).data
-        return data
+        fields = ['id', 'name', 'year', 'rating', 'genre', 'category',
+                  'description']
 
     def get_rating(self, obj):
         if hasattr(obj, 'avg_rating'):
