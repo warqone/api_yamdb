@@ -8,7 +8,7 @@ from api.constants import (CHARFIELD_MAX_LENGHT, LIMIT_STRING, MAX_RATING,
 from users.models import User
 
 
-class BaseModel(models.Model):
+class CategoryGenreBaseModel(models.Model):
     slug = models.SlugField(
         verbose_name='Слаг',
         unique=True,
@@ -45,7 +45,7 @@ class ReviewComment(models.Model):
         return self.text[:LIMIT_STRING]
 
 
-class Category(BaseModel):
+class Category(CategoryGenreBaseModel):
     name = models.CharField(
         verbose_name='Категория',
         max_length=CHARFIELD_MAX_LENGHT,
@@ -57,7 +57,7 @@ class Category(BaseModel):
         verbose_name_plural = 'Категории'
 
 
-class Genre(BaseModel):
+class Genre(CategoryGenreBaseModel):
     name = models.TextField(
         verbose_name='Жанр',
         max_length=CHARFIELD_MAX_LENGHT,

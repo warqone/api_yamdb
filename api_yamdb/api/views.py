@@ -4,6 +4,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django.db.models import Avg
+from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
 from rest_framework import (filters, mixins, pagination, permissions, response,
                             status, views, viewsets)
@@ -84,8 +85,10 @@ class GenreViewSet(CreateDestroyViewSet):
 
 
 class TitleViewSet(viewsets.ModelViewSet):
-    queryset = Title.objects.annotate(rating=Avg('reviews__score'))
-    serializer_class = TitleSerializer
+    queryset = Title.objects.annotate(
+        average_rating=Avg('reviews__score')
+    ).select_related('category').prefetch_related('genre')
+    serializer_class = serializers.TitleSerializer
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filterset_class = TitleFilter
     search_fields = ('name', 'description')
@@ -97,8 +100,7 @@ class TitleViewSet(viewsets.ModelViewSet):
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.ReviewSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly,
-                          IsAuthorOrReadOnly]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     pagination_class = pagination.LimitOffsetPagination
     http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options']
 
@@ -115,9 +117,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 
 class CommentViewSet(viewsets.ModelViewSet):
-    permission_classes = [
-        permissions.IsAuthenticatedOrReadOnly,
-        IsAuthorOrReadOnly]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     serializer_class = serializers.CommentSerializer
     pagination_class = pagination.LimitOffsetPagination
     http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options']
