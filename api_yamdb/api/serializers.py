@@ -139,14 +139,26 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class TitleSerializer(serializers.ModelSerializer):
-    category = serializers.StringRelatedField()
-    genre = serializers.StringRelatedField(many=True)
-    average_rating = serializers.IntegerField(read_only=True)
+    category = serializers.SlugRelatedField(
+        slug_field='slug',
+        queryset=Category.objects.all()
+    )
+    genre = serializers.SlugRelatedField(
+        slug_field='slug',
+        queryset=Genre.objects.all(),
+        many=True)
+    rating = serializers.SerializerMethodField()
 
     class Meta:
         model = Title
-        fields = ['id', 'name', 'year', 'average_rating', 'genre', 'category',
+        fields = ['id', 'name', 'year', 'rating', 'genre', 'category',
                   'description']
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['category'] = CategorySerializer(instance.category).data
+        data['genre'] = GenreSerializer(instance.genre.all(), many=True).data
+        return data
 
     def get_rating(self, obj):
         if hasattr(obj, 'avg_rating'):

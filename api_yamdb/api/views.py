@@ -3,8 +3,8 @@ from random import randint
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
-from django.db.models import Avg
 from django_filters.rest_framework import DjangoFilterBackend
+from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from rest_framework import (filters, mixins, pagination, permissions, response,
                             status, views, viewsets)
@@ -12,7 +12,7 @@ from rest_framework.decorators import action
 
 from api import serializers
 from api.filters import TitleFilter
-from api.permissions import AdminPermission, IsAdminOnly
+from api.permissions import AdminPermission, IsAdminOnly, IsAuthorOrReadOnly
 from reviews.models import Category, Genre, Review, Title
 
 User = get_user_model()
@@ -85,22 +85,24 @@ class GenreViewSet(CreateDestroyViewSet):
 
 
 class TitleViewSet(viewsets.ModelViewSet):
-    queryset = Title.objects.annotate(
-        average_rating=Avg('reviews__score')
-    ).select_related('category').prefetch_related('genre')
+    queryset = Title.objects.all().order_by('name')
     serializer_class = serializers.TitleSerializer
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filterset_class = TitleFilter
     search_fields = ('name', 'description')
+    permission_classes = [AdminPermission,]
+    http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options']
 
     def get_queryset(self):
-        return self.queryset.select_related('category').prefetch_related(
-            'genre')
+        return super().get_queryset().annotate(
+            avg_rating=Avg('reviews__score')
+        )
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.ReviewSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly,
+                          IsAuthorOrReadOnly]
     pagination_class = pagination.LimitOffsetPagination
     http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options']
 
@@ -117,7 +119,8 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 
 class CommentViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly,
+                          IsAuthorOrReadOnly]
     serializer_class = serializers.CommentSerializer
     pagination_class = pagination.LimitOffsetPagination
     http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options']
