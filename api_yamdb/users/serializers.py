@@ -1,8 +1,8 @@
+from api.constants import EMAIL_LENGTH, USERNAME_LENGTH
 from django.contrib.auth import get_user_model
 from django.core.validators import RegexValidator
 from rest_framework import serializers
 
-from api.constants import EMAIL_LENGTH, USERNAME_LENGTH
 from .models import ROLE_CHOICES
 
 User = get_user_model()
