@@ -1,11 +1,10 @@
+from api import constants
+from api.validators import validate_username
 from django.contrib.auth.hashers import check_password, make_password
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
 from django.db import models
 from django.utils import timezone
-
-from api import constants
-from api.validators import validate_username
 
 
 class User(AbstractUser):

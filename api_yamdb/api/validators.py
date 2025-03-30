@@ -1,6 +1,5 @@
-from django.core.exceptions import ValidationError
-
 from api.constants import BANNED_USERNAMES
+from django.core.exceptions import ValidationError
 
 
 def validate_username(value):

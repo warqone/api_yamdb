@@ -1,10 +1,9 @@
 from datetime import datetime
 
+from api.constants import (CHARFIELD_MAX_LENGHT, LIMIT_STRING, MAX_RATING,
+                           MIN_RATING)
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-
-from api.constants import (CHARFIELD_MAX_LENGHT, MIN_RATING, MAX_RATING,
-                           LIMIT_STRING)
 from users.models import User
 
 

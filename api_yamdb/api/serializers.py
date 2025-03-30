@@ -1,10 +1,9 @@
+from api import constants
 from django.contrib.auth import get_user_model
 from django.core.validators import RegexValidator
 from rest_framework import serializers
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework.exceptions import NotFound
-
-from api import constants
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from reviews.models import Category, Comment, Genre, Review, Title
 
 User = get_user_model()
