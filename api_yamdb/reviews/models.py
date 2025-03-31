@@ -5,10 +5,15 @@ from django.db import models
 
 from api.constants import (CHARFIELD_MAX_LENGHT, LIMIT_STRING, MAX_RATING,
                            MIN_RATING)
+from api.validators import validate_year
 from users.models import User
 
 
 class CategoryGenreBaseModel(models.Model):
+    name = models.CharField(
+        verbose_name='Название',
+        max_length=CHARFIELD_MAX_LENGHT,
+    )
     slug = models.SlugField(
         verbose_name='Слаг',
         unique=True,
@@ -46,26 +51,14 @@ class ReviewComment(models.Model):
 
 
 class Category(CategoryGenreBaseModel):
-    name = models.CharField(
-        verbose_name='Категория',
-        max_length=CHARFIELD_MAX_LENGHT,
-    )
-
-    class Meta:
-        ordering = ('name',)
+    class Meta(CategoryGenreBaseModel.Meta):
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
 
 
 class Genre(CategoryGenreBaseModel):
-    name = models.TextField(
-        verbose_name='Жанр',
-        max_length=CHARFIELD_MAX_LENGHT,
-    )
-
-    class Meta:
-        ordering = ('name',)
-        verbose_name = 'Жанр',
+    class Meta(CategoryGenreBaseModel.Meta):
+        verbose_name = 'Жанр'
         verbose_name_plural = 'Жанры'
 
 
@@ -76,9 +69,7 @@ class Title(models.Model):
     )
     year = models.SmallIntegerField(
         verbose_name='Год выпуска',
-        validators=[
-            MaxValueValidator(datetime.now().year),
-        ],
+        validators=[validate_year],
     )
     rating = models.PositiveSmallIntegerField(
         verbose_name='Рейтинг',
