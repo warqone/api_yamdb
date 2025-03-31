@@ -46,6 +46,10 @@ class User(AbstractUser):
     def is_admin(self):
         return self.role == constants.ADMIN or self.is_superuser
 
+    @property
+    def is_moderator(self):
+        return self.role == constants.MODERATOR
+
     def set_confirmation_code(self, code):
         """Устанавливает хешированный код подтверждения и время создания."""
         self.confirmation_code_hash = make_password(code)

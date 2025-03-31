@@ -85,18 +85,15 @@ class GenreViewSet(CreateDestroyViewSet):
 
 
 class TitleViewSet(viewsets.ModelViewSet):
-    queryset = Title.objects.all().order_by('name')
+    queryset = Title.objects.annotate(
+        rating=Avg('reviews__score')
+    ).all().order_by('name')
     serializer_class = serializers.TitleSerializer
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filterset_class = TitleFilter
     search_fields = ('name', 'description')
-    permission_classes = [AdminPermission,]
+    permission_classes = [AdminPermission]
     http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options']
-
-    def get_queryset(self):
-        return super().get_queryset().annotate(
-            avg_rating=Avg('reviews__score')
-        )
 
 
 class ReviewViewSet(viewsets.ModelViewSet):

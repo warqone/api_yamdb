@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
@@ -70,15 +68,6 @@ class Title(models.Model):
     year = models.SmallIntegerField(
         verbose_name='Год выпуска',
         validators=[validate_year],
-    )
-    rating = models.PositiveSmallIntegerField(
-        verbose_name='Рейтинг',
-        null=True,
-        blank=True,
-        validators=[
-            MinValueValidator(MIN_RATING),
-            MaxValueValidator(MAX_RATING)
-        ]
     )
     description = models.TextField(
         verbose_name='Описание',

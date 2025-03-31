@@ -146,24 +146,21 @@ class TitleSerializer(serializers.ModelSerializer):
     genre = serializers.SlugRelatedField(
         slug_field='slug',
         queryset=Genre.objects.all(),
-        many=True)
-    rating = serializers.SerializerMethodField()
+        many=True
+    )
+    rating = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Title
-        fields = ['id', 'name', 'year', 'rating', 'genre', 'category',
-                  'description']
+        fields = [
+            'id', 'name', 'year', 'rating', 'genre', 'category',
+            'description']
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
         data['category'] = CategorySerializer(instance.category).data
         data['genre'] = GenreSerializer(instance.genre.all(), many=True).data
         return data
-
-    def get_rating(self, obj):
-        if hasattr(obj, 'avg_rating'):
-            return obj.avg_rating
-        return None
 
 
 class UserSerializer(serializers.ModelSerializer):
