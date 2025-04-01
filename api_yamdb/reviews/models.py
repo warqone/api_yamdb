@@ -107,17 +107,11 @@ class Review(ReviewComment):
     title = models.ForeignKey(
         Title,
         on_delete=models.CASCADE,
-        related_name='reviews',
         verbose_name='Произведение',
-    )
-    author = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='review_author',
     )
 
     class Meta:
-        default_related_name = 'reviews.review'
+        default_related_name = 'reviews'
         constraints = [
             models.UniqueConstraint(
                 fields=['title', 'author'],
@@ -129,16 +123,10 @@ class Review(ReviewComment):
 class Comment(ReviewComment):
     review = models.ForeignKey(
         Review, on_delete=models.CASCADE,
-        related_name='comments',
         verbose_name='Отзыв'
-    )
-    author = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='comment_author',
     )
 
     class Meta:
-        default_related_name = 'reviews.comment'
+        default_related_name = 'comments'
         verbose_name = 'Комментарий'
         verbose_name_plural = 'Комментарии'
